@@ -3,10 +3,12 @@ package ai.javis.menucontrol.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import ai.javis.menucontrol.model.Company;
 import ai.javis.menucontrol.repository.CompanyRepo;
 
+@Service
 public class CompanyService {
 
     @Autowired

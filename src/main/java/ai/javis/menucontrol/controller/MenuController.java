@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 import ai.javis.menucontrol.model.Menu;
@@ -25,6 +26,7 @@ public class MenuController {
     @Autowired
     MenuService service;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/menu")
     public ResponseEntity<List<Menu>> getMenus() {
         return new ResponseEntity<>(service.getMenus(), HttpStatus.OK);
@@ -41,6 +43,7 @@ public class MenuController {
 
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/menu")
     public ResponseEntity<?> addMenu(@RequestBody Menu menu) {
         try {
@@ -51,6 +54,7 @@ public class MenuController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/menu")
     public ResponseEntity<?> updateMenu(@RequestBody Menu menu) {
         try {
@@ -61,6 +65,7 @@ public class MenuController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("menu/{menuId}")
     public ResponseEntity<?> deleteMenu(@PathVariable long menuId) {
         try {
