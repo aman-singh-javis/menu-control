@@ -1,11 +1,8 @@
 package ai.javis.menucontrol.model;
 
 import java.time.LocalDate;
-import java.util.Collection;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,38 +18,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "_user")
-public class User implements UserDetails {
+@Table(name = "User_Master")
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId; // -> User_Id Define Column Name @Column Name
+    @Column(name = "user_id")
+    private Long userId;
+
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "email")
     private String email;
-    private String userName;
+
+    @Column(name = "username")
+    private String username;
+
+    @Column(name = "password")
     private String password;
+
+    @Column(name = "last_login_date")
     private LocalDate lastLoginDate;
+
+    @Column(name = "is_enabled")
     private boolean isEnabled;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return userName;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return isEnabled;
-    }
 
 }

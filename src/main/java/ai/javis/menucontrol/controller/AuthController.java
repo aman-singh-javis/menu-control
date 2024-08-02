@@ -1,10 +1,7 @@
 package ai.javis.menucontrol.controller;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ai.javis.menucontrol.jwt.JwtUtils;
-import ai.javis.menucontrol.jwt.LoginRequest;
-import ai.javis.menucontrol.jwt.LoginResponse;
+import ai.javis.menucontrol.model.LoginRequest;
+import ai.javis.menucontrol.model.LoginResponse;
 
 @RestController
 @RequestMapping("/api")
-public class LoginController {
+public class AuthController {
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -51,13 +48,9 @@ public class LoginController {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
+        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
 
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        LoginResponse response = new LoginResponse(jwtToken, userDetails.getUsername(), roles);
+        LoginResponse response = new LoginResponse(jwtToken, userDetails.getUsername());
 
         return ResponseEntity.ok(response);
     }

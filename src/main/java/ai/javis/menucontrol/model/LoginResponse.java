@@ -1,6 +1,4 @@
-package ai.javis.menucontrol.jwt;
-
-import java.util.List;
+package ai.javis.menucontrol.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
     private String jwtToken;
     private String username;
-    private List<String> roles;
 }
