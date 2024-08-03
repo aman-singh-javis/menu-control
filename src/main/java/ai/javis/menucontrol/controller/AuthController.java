@@ -1,7 +1,5 @@
 package ai.javis.menucontrol.controller;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ai.javis.menucontrol.dto.ApiResponse;
 import ai.javis.menucontrol.dto.CompanyDTO;
 import ai.javis.menucontrol.dto.ConfirmAccountRequest;
 import ai.javis.menucontrol.dto.LoginRequest;
@@ -67,8 +66,7 @@ public class AuthController {
         companyService.saveCompany(compDTO);
         userService.saveUser(userDTO, body.getPassword());
 
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("message", "Verify email by the link sent on your email address");
+        ApiResponse<?> resp = new ApiResponse<>("Verify email by the link sent on your email address", null);
         return ResponseEntity.ok(resp);
     }
 
@@ -76,7 +74,8 @@ public class AuthController {
     public ResponseEntity<?> confirmUserAccount(
             @Valid @RequestBody ConfirmAccountRequest body)
             throws UserNotFound {
-        return userService.confirmEmail(body.getToken());
+        String username = userService.confirmEmail(body.getToken());
+        return authenticatedResponse(username, "email verified successfully");
     }
 
     @PostMapping("/signin")
@@ -87,23 +86,21 @@ public class AuthController {
                     .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
                             loginRequest.getPassword()));
         } catch (AuthenticationException exception) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("message", "Bad credentials");
-            map.put("status", false);
-            return new ResponseEntity<>(map, HttpStatus.NOT_FOUND);
+            throw new UserNotFound("bad credentials");
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return authenticatedResponse(userDetails.getUsername());
+        return authenticatedResponse(userDetails.getUsername(), "signed in successfully");
     }
 
-    private ResponseEntity<?> authenticatedResponse(String username) throws UserNotFound {
+    private ResponseEntity<?> authenticatedResponse(String username, String message) throws UserNotFound {
         String jwtToken = jwtUtils.generateTokenFromUsername(username);
         User user = userService.getUserByUsername(username);
         LoginResponse response = new LoginResponse(jwtToken, user);
 
-        return ResponseEntity.ok(response);
+        ApiResponse<LoginResponse> resp = new ApiResponse<LoginResponse>(message, response);
+        return ResponseEntity.ok(resp);
     }
 }

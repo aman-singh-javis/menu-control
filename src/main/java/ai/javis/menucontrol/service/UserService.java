@@ -1,16 +1,13 @@
 package ai.javis.menucontrol.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import ai.javis.menucontrol.dto.ApiResponse;
 import ai.javis.menucontrol.dto.UserDTO;
 import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
@@ -38,8 +35,6 @@ public class UserService {
     private ModelMapper modelMapper;
 
     public ResponseEntity<?> saveUser(UserDTO userDTO, String rawPassword) throws UserAlreadyExists {
-        Map<String, Object> map = new HashMap<>();
-
         if (userRepo.existsByEmail(userDTO.getEmail())) {
             throw new UserAlreadyExists("email already in use!");
         }
@@ -66,11 +61,11 @@ public class UserService {
 
         System.out.println("Confirmation Token: " + confirmationToken.getConfirmationToken());
 
-        map.put("message", "Verify email by the link sent on your email address");
-        return new ResponseEntity<>(map, HttpStatus.OK);
+        ApiResponse<?> resp = new ApiResponse<>("Verify email by the link sent on your email address", null);
+        return ResponseEntity.ok(resp);
     }
 
-    public ResponseEntity<?> confirmEmail(String confirmationToken) throws UserNotFound {
+    public String confirmEmail(String confirmationToken) throws UserNotFound {
         ConfirmationToken token = confirmationTokenRepo.findByConfirmationToken(confirmationToken);
 
         if (token == null) {
@@ -81,9 +76,7 @@ public class UserService {
         user.setEnabled(true);
         userRepo.save(user);
 
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("message", "email verified successfully");
-        return ResponseEntity.ok(resp);
+        return user.getUsername();
     }
 
     public ResponseEntity<?> updatePassword(String username, String rawPassword) throws UserNotFound {
@@ -92,8 +85,7 @@ public class UserService {
         user.setPassword(encryptedPassword);
         userRepo.save(user);
 
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("message", "password updated successfully");
+        ApiResponse<?> resp = new ApiResponse<>("password updated successfully", null);
         return ResponseEntity.ok(resp);
     }
 
