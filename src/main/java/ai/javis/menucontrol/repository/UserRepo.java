@@ -9,6 +9,9 @@ import ai.javis.menucontrol.model.User;
 public interface UserRepo extends JpaRepository<User, Long> {
     User findByEmailIgnoreCase(String emailId);
 
+    User findByUsername(String username);
+
     Boolean existsByEmail(String email);
 
+    Boolean existsByUsername(String username);
 }

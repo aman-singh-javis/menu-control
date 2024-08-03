@@ -3,6 +3,7 @@ package ai.javis.menucontrol.service;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,9 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import ai.javis.menucontrol.dto.UserDTO;
+import ai.javis.menucontrol.exception.UserAlreadyExists;
+import ai.javis.menucontrol.exception.UserNotFound;
 import ai.javis.menucontrol.model.ConfirmationToken;
 import ai.javis.menucontrol.model.User;
 import ai.javis.menucontrol.repository.ConfirmationTokenRepo;
@@ -25,27 +29,32 @@ public class UserService {
     private PasswordEncoder encoder;
 
     @Autowired
-    EmailService emailService;
+    private EmailService emailService;
 
     @Autowired
-    ConfirmationTokenRepo confirmationTokenRepo;
+    private ConfirmationTokenRepo confirmationTokenRepo;
 
-    public ResponseEntity<?> saveUser(User user) {
+    @Autowired
+    private ModelMapper modelMapper;
 
-        System.out.println("Saving User");
+    public ResponseEntity<?> saveUser(UserDTO userDTO, String rawPassword) throws UserAlreadyExists {
         Map<String, Object> map = new HashMap<>();
 
-        if (userRepo.existsByEmail(user.getEmail())) {
-            map.put("message", "email already in use!");
-            return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
+        if (userRepo.existsByEmail(userDTO.getEmail())) {
+            throw new UserAlreadyExists("email already in use!");
         }
 
-        String encryptedPassword = encoder.encode(user.getPassword());
+        if (userRepo.existsByUsername(userDTO.getUsername())) {
+            throw new UserAlreadyExists("username already in use!");
+        }
+
+        User user = convertDtoToModel(userDTO);
+
+        String encryptedPassword = encoder.encode(rawPassword);
         user.setPassword(encryptedPassword);
         userRepo.save(user);
 
         ConfirmationToken confirmationToken = new ConfirmationToken(user);
-
         confirmationTokenRepo.save(confirmationToken);
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
@@ -61,15 +70,47 @@ public class UserService {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    public ResponseEntity<?> confirmEmail(String confirmationToken) {
+    public ResponseEntity<?> confirmEmail(String confirmationToken) throws UserNotFound {
         ConfirmationToken token = confirmationTokenRepo.findByConfirmationToken(confirmationToken);
 
-        if (token != null) {
-            User user = userRepo.findByEmailIgnoreCase(token.getUserEntity().getEmail());
-            user.setEnabled(true);
-            userRepo.save(user);
-            return ResponseEntity.ok("Email verified successfully!");
+        if (token == null) {
+            throw new UserNotFound("token is invalid");
         }
-        return ResponseEntity.badRequest().body("Error: Couldn't verify email");
+
+        User user = userRepo.findByEmailIgnoreCase(token.getUserEntity().getEmail());
+        user.setEnabled(true);
+        userRepo.save(user);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("message", "email verified successfully");
+        return ResponseEntity.ok(resp);
+    }
+
+    public ResponseEntity<?> updatePassword(String username, String rawPassword) throws UserNotFound {
+        User user = getUserByUsername(username);
+        String encryptedPassword = encoder.encode(rawPassword);
+        user.setPassword(encryptedPassword);
+        userRepo.save(user);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("message", "password updated successfully");
+        return ResponseEntity.ok(resp);
+    }
+
+    public User getUserByUsername(String username) throws UserNotFound {
+        User user = userRepo.findByUsername(username);
+        if (user != null) {
+            return user;
+        }
+
+        throw new UserNotFound("User not found with username: " + username);
+    }
+
+    public UserDTO convertModelToDto(User user) {
+        return modelMapper.map(user, UserDTO.class);
+    }
+
+    public User convertDtoToModel(UserDTO userDTO) {
+        return modelMapper.map(userDTO, User.class);
     }
 }

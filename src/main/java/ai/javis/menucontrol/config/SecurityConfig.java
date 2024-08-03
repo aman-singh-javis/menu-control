@@ -41,9 +41,7 @@ public class SecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("api/signin").permitAll()
-                .requestMatchers("api/confirm-account").permitAll()
-                .requestMatchers("api/register").permitAll()
+                .requestMatchers("api/auth/**").permitAll()
                 .anyRequest().authenticated());
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));

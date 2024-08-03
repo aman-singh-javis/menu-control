@@ -1,4 +1,4 @@
-package ai.javis.menucontrol.model;
+package ai.javis.menucontrol.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

@@ -7,5 +7,11 @@ import ai.javis.menucontrol.model.Company;
 
 @Repository
 public interface CompanyRepo extends JpaRepository<Company, Long> {
+    Company findByTaxId(String taxId);
 
+    Company findByDomainIgnoreCase(String domain);
+
+    Boolean existsByDomain(String domain);
+
+    Boolean existsByTaxId(String taxId);
 }

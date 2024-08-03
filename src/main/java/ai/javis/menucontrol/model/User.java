@@ -2,6 +2,8 @@ package ai.javis.menucontrol.model;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -45,6 +47,7 @@ public class User {
     private LocalDate lastLoginDate;
 
     @Column(name = "is_enabled")
+    @JsonIgnore
     private boolean isEnabled;
 
 }
