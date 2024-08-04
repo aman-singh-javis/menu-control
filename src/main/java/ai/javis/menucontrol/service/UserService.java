@@ -1,9 +1,14 @@
 package ai.javis.menucontrol.service;
 
+import java.time.LocalDate;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +22,7 @@ import ai.javis.menucontrol.repository.ConfirmationTokenRepo;
 import ai.javis.menucontrol.repository.UserRepo;
 
 @Service
-public class UserService {
+public class UserService implements ApplicationListener<AuthenticationSuccessEvent> {
 
     @Autowired
     private UserRepo userRepo;
@@ -72,7 +77,7 @@ public class UserService {
             throw new UserNotFound("token is invalid");
         }
 
-        User user = userRepo.findByEmailIgnoreCase(token.getUserEntity().getEmail());
+        User user = userRepo.findByEmailIgnoreCase(token.getUser().getEmail());
         user.setEnabled(true);
         userRepo.save(user);
 
@@ -104,5 +109,18 @@ public class UserService {
 
     public User convertDtoToModel(UserDTO userDTO) {
         return modelMapper.map(userDTO, User.class);
+    }
+
+    @Override
+    public void onApplicationEvent(AuthenticationSuccessEvent event) {
+        String userName = ((UserDetails) event.getAuthentication().getPrincipal()).getUsername();
+
+        try {
+            User user = getUserByUsername(userName);
+            user.setLastLoginDate(LocalDate.now());
+            userRepo.save(user);
+        } catch (UserNotFound e) {
+            e.printStackTrace();
+        }
     }
 }

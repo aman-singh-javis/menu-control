@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CompanyDTO {
     @NotBlank(message = "name is required")
-    private String name;
+    private String companyName;
 
     @NotBlank(message = "domain is required")
     private String domain;
