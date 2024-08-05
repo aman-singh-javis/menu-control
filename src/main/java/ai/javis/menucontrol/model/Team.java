@@ -1,6 +1,6 @@
 package ai.javis.menucontrol.model;
 
-import java.util.Set;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -27,15 +28,21 @@ public class Team {
     private Integer teamId;
 
     @Column(name = "team_name")
-    private Integer teamName;
+    private String teamName;
 
     @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
     @OneToMany(mappedBy = "team")
-    private Set<Menu> menus;
+    private List<Menu> menus;
 
-    @OneToMany(mappedBy = "team")
-    private Set<User> users;
+    @ManyToMany(mappedBy = "teams")
+    private List<User> users;
+
+    public Team(String teamName, List<User> users) {
+        this.teamName = teamName;
+        this.company = users.get(0).getCompany();
+        this.users = users;
+    }
 }

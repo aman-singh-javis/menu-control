@@ -20,6 +20,7 @@ import ai.javis.menucontrol.exception.CompanyNotFound;
 import ai.javis.menucontrol.model.Company;
 import ai.javis.menucontrol.service.CompanyService;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api")

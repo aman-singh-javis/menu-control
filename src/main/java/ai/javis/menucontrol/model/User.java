@@ -1,6 +1,7 @@
 package ai.javis.menucontrol.model;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -11,7 +12,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -54,11 +58,11 @@ public class User {
     @JsonIgnore
     private boolean isEnabled;
 
-    @ManyToOne
-    @JoinColumn(name = "team_id", nullable = false)
-    private Team team;
+    @ManyToMany
+    @JoinTable(name = "user_team", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "team_id"))
+    private List<Team> teams;
 
-    @OneToOne(targetEntity = Company.class, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false, name = "company_id")
+    @ManyToOne
+    @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 }

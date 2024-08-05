@@ -16,6 +16,7 @@ import ai.javis.menucontrol.dto.ApiResponse;
 import ai.javis.menucontrol.dto.UserDTO;
 import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
+import ai.javis.menucontrol.model.Company;
 import ai.javis.menucontrol.model.ConfirmationToken;
 import ai.javis.menucontrol.model.User;
 import ai.javis.menucontrol.repository.ConfirmationTokenRepo;
@@ -39,7 +40,21 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
     @Autowired
     private ModelMapper modelMapper;
 
-    public ResponseEntity<?> saveUser(UserDTO userDTO, String rawPassword) throws UserAlreadyExists {
+    private void sendEmail(User user, String message) {
+        ConfirmationToken confirmationToken = new ConfirmationToken(user);
+        confirmationTokenRepo.save(confirmationToken);
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(user.getEmail());
+        mailMessage.setSubject("Complete Registration!");
+        mailMessage.setText(message + ", please click here : "
+                + "http://localhost:8080/confirm-account?token=" + confirmationToken.getConfirmationToken());
+        emailService.sendEmail(mailMessage);
+
+        System.out.println("Confirmation Token: " + confirmationToken.getConfirmationToken());
+    }
+
+    public User saveUser(UserDTO userDTO, String rawPassword, Company comp) throws UserAlreadyExists {
         if (userRepo.existsByEmail(userDTO.getEmail())) {
             throw new UserAlreadyExists("email already in use!");
         }
@@ -52,34 +67,39 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
 
         String encryptedPassword = encoder.encode(rawPassword);
         user.setPassword(encryptedPassword);
-        userRepo.save(user);
+        user.setCompany(comp);
+        User savedUser = userRepo.save(user);
 
-        ConfirmationToken confirmationToken = new ConfirmationToken(user);
-        confirmationTokenRepo.save(confirmationToken);
+        sendEmail(user, "To confirm your account");
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(user.getEmail());
-        mailMessage.setSubject("Complete Registration!");
-        mailMessage.setText("To confirm your account, please click here : "
-                + "http://localhost:8080/confirm-account?token=" + confirmationToken.getConfirmationToken());
-        emailService.sendEmail(mailMessage);
+        return savedUser;
+    }
 
-        System.out.println("Confirmation Token: " + confirmationToken.getConfirmationToken());
+    public ResponseEntity<?> signInWithEmail(String email) throws UserNotFound {
+        User user = userRepo.findByEmailIgnoreCase(email);
+        if (user == null) {
+            throw new UserNotFound("User not found with email: " + email);
+        }
 
-        ApiResponse<?> resp = new ApiResponse<>("Verify email by the link sent on your email address", null);
+        sendEmail(user, "To signin in your account");
+
+        ApiResponse<?> resp = new ApiResponse<>("login url sent to email", null);
         return ResponseEntity.ok(resp);
     }
 
     public String confirmEmail(String confirmationToken) throws UserNotFound {
         ConfirmationToken token = confirmationTokenRepo.findByConfirmationToken(confirmationToken);
 
-        if (token == null) {
+        if (token == null || !token.getIsActive()) {
             throw new UserNotFound("token is invalid");
         }
 
         User user = userRepo.findByEmailIgnoreCase(token.getUser().getEmail());
         user.setEnabled(true);
         userRepo.save(user);
+
+        token.setIsActive(false);
+        confirmationTokenRepo.save(token);
 
         return user.getUsername();
     }

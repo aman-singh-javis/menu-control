@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import ai.javis.menucontrol.dto.CompanyDTO;
@@ -35,7 +34,7 @@ public class CompanyService {
         return comp;
     }
 
-    public ResponseEntity<?> saveCompany(CompanyDTO companyDTO) throws CompanyAlreadyExists {
+    public Company saveCompany(CompanyDTO companyDTO) throws CompanyAlreadyExists {
         if (repo.existsByDomain(companyDTO.getDomain())) {
             throw new CompanyAlreadyExists("domain already in use!");
         }
@@ -45,9 +44,7 @@ public class CompanyService {
         }
 
         Company company = convertDtoToModel(companyDTO);
-        repo.save(company);
-
-        return ResponseEntity.ok("message");
+        return repo.save(company);
     }
 
     public void updateCompany(Long companyId, CompanyDTO companyDTO) throws CompanyAlreadyExists {

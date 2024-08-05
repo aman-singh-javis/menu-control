@@ -5,7 +5,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import ai.javis.menucontrol.exception.MenuAlreadyExists;
 import ai.javis.menucontrol.model.Menu;
+import ai.javis.menucontrol.model.Team;
 import ai.javis.menucontrol.repository.MenuRepo;
 
 @Service
@@ -22,15 +24,16 @@ public class MenuService {
         return repo.findById(menuId).orElseThrow();
     }
 
-    public void addMenu(Menu menu) {
-        repo.save(menu);
+    public Menu getMenuByName(String menuName) {
+        return repo.findByMenuName(menuName);
     }
 
-    public void updateMenu(Menu menu) {
-        repo.save(menu);
-    }
+    public Menu addMenu(String menuName, Team team) {
+        // if (repo.existsByMenuName(menuName)) {
+        // throw new MenuAlreadyExists("menu " + menuName + " already exists");
+        // }
 
-    public void deleteMenu(Long menuId) {
-        repo.deleteById(menuId);
+        Menu menu = new Menu(menuName, team);
+        return repo.save(menu);
     }
 }

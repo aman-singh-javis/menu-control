@@ -7,5 +7,7 @@ import ai.javis.menucontrol.model.Menu;
 
 @Repository
 public interface MenuRepo extends JpaRepository<Menu, Long> {
+    Menu findByMenuName(String menuName);
 
+    Boolean existsByMenuName(String menuName);
 }

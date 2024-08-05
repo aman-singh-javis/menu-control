@@ -1,6 +1,6 @@
 package ai.javis.menucontrol.model;
 
-import java.util.Set;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,11 +34,11 @@ public class Company {
     private String taxId;
 
     @OneToMany(mappedBy = "company")
-    private Set<Team> teams;
+    private List<Team> teams;
 
     @OneToMany(mappedBy = "company")
-    private Set<User> users;
+    private List<User> users;
 
-    // @OneToMany(mappedBy = "company")
-    // private Set<Menu> menus;
+    @OneToMany(mappedBy = "company")
+    private List<Menu> menus;
 }

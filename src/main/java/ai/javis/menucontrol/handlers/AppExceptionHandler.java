@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import ai.javis.menucontrol.dto.ApiResponse;
+import ai.javis.menucontrol.exception.CompanyAlreadyExists;
 import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
 
@@ -34,6 +35,12 @@ public class AppExceptionHandler {
 
     @ExceptionHandler(UserAlreadyExists.class)
     public ResponseEntity<?> handleUserAlreadyExistsException(UserAlreadyExists exception) {
+        ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CompanyAlreadyExists.class)
+    public ResponseEntity<?> handleCompanyAlreadyExistsException(CompanyAlreadyExists exception) {
         ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }

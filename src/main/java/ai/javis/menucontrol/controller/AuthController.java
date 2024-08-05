@@ -1,5 +1,8 @@
 package ai.javis.menucontrol.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +25,24 @@ import ai.javis.menucontrol.dto.LoginResponse;
 import ai.javis.menucontrol.dto.RegisterRequest;
 import ai.javis.menucontrol.dto.UserDTO;
 import ai.javis.menucontrol.exception.CompanyAlreadyExists;
+import ai.javis.menucontrol.exception.MenuAlreadyExists;
+import ai.javis.menucontrol.exception.TeamAlreadyExists;
 import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
 import ai.javis.menucontrol.jwt.JwtUtils;
+import ai.javis.menucontrol.model.Company;
+import ai.javis.menucontrol.model.Team;
 import ai.javis.menucontrol.model.User;
 import ai.javis.menucontrol.service.CompanyService;
+import ai.javis.menucontrol.service.MenuService;
+import ai.javis.menucontrol.service.TeamService;
 import ai.javis.menucontrol.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -41,6 +55,12 @@ public class AuthController {
     private CompanyService companyService;
 
     @Autowired
+    private TeamService teamService;
+
+    @Autowired
+    private MenuService menuService;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
     @Autowired
@@ -48,7 +68,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest body)
-            throws UserAlreadyExists, CompanyAlreadyExists {
+            throws UserAlreadyExists, CompanyAlreadyExists, TeamAlreadyExists {
 
         CompanyDTO compDTO = body.getCompanyInfo();
 
@@ -63,8 +83,18 @@ public class AuthController {
             return new ResponseEntity<>("please register using company email", HttpStatus.BAD_REQUEST);
         }
 
-        companyService.saveCompany(compDTO);
-        userService.saveUser(userDTO, body.getPassword());
+        Company comp = companyService.saveCompany(compDTO);
+        User user = userService.saveUser(userDTO, body.getPassword(), comp);
+        List<User> users = new ArrayList<>();
+        users.add(user);
+
+        Team team = teamService.createTeam("ADMIN", users);
+        // menuService.addMenu("CREATE_TEAM", team);
+        // menuService.addMenu("CREATE_MENU", team);
+        // menuService.addMenu("INVITE_MEMBER", team);
+        // menuService.addMenu("ASSIGN_TEAM", team);
+        // menuService.addMenu("ASSIGN_MENU", team);
+        // menuService.addMenu("UPDATE_TEAM", team);
 
         ApiResponse<?> resp = new ApiResponse<>("Verify email by the link sent on your email address", null);
         return ResponseEntity.ok(resp);
@@ -76,6 +106,13 @@ public class AuthController {
             throws UserNotFound {
         String username = userService.confirmEmail(body.getToken());
         return authenticatedResponse(username, "email verified successfully");
+    }
+
+    @GetMapping("/signInWithEmail")
+    public ResponseEntity<?> signInWithEmail(
+            @Valid @RequestParam @NotBlank(message = "email is required") @Email(message = "email is invalid") String email)
+            throws UserNotFound {
+        return userService.signInWithEmail(email);
     }
 
     @PostMapping("/signin")
@@ -98,7 +135,8 @@ public class AuthController {
     private ResponseEntity<?> authenticatedResponse(String username, String message) throws UserNotFound {
         String jwtToken = jwtUtils.generateTokenFromUsername(username);
         User user = userService.getUserByUsername(username);
-        LoginResponse response = new LoginResponse(jwtToken, user);
+        UserDTO userDTO = userService.convertModelToDto(user);
+        LoginResponse response = new LoginResponse(jwtToken, userDTO);
 
         ApiResponse<LoginResponse> resp = new ApiResponse<LoginResponse>(message, response);
         return ResponseEntity.ok(resp);

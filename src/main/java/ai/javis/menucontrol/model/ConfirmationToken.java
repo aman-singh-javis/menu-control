@@ -31,6 +31,9 @@ public class ConfirmationToken {
     @Column(name = "confirmation_token")
     private String confirmationToken;
 
+    @Column(name = "is_active")
+    private Boolean isActive;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdDate;
 
@@ -42,5 +45,6 @@ public class ConfirmationToken {
         this.user = user;
         createdDate = new Date();
         confirmationToken = UUID.randomUUID().toString();
+        this.isActive = true;
     }
 }

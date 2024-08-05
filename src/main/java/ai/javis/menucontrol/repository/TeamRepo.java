@@ -7,5 +7,5 @@ import ai.javis.menucontrol.model.Team;
 
 @Repository
 public interface TeamRepo extends JpaRepository<Team, Integer> {
-
+    Boolean existsByTeamName(String teamName);
 }
