@@ -1,7 +1,9 @@
 package ai.javis.menucontrol.model;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -12,19 +14,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -58,11 +55,39 @@ public class User {
     @JsonIgnore
     private boolean isEnabled;
 
-    @ManyToMany
-    @JoinTable(name = "user_team", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "team_id"))
-    private List<Team> teams;
+    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
+    private Set<Team> teams = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
+
+    public void addTeam(Team team) {
+        this.teams.add(team);
+        team.getUsers().add(this);
+    }
+
+    public void removeTeam(Team team) {
+        this.teams.remove(team);
+        team.getUsers().remove(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        User user = (User) o;
+        return Objects.equals(userId, user.userId) &&
+                Objects.equals(username, user.username) &&
+                Objects.equals(email, user.email) &&
+                Objects.equals(firstName, user.firstName) &&
+                Objects.equals(lastName, user.lastName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, username, email, firstName, lastName);
+    }
 }

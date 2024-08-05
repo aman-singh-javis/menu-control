@@ -1,6 +1,5 @@
 package ai.javis.menucontrol.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +30,7 @@ import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
 import ai.javis.menucontrol.jwt.JwtUtils;
 import ai.javis.menucontrol.model.Company;
+import ai.javis.menucontrol.model.Menu;
 import ai.javis.menucontrol.model.Team;
 import ai.javis.menucontrol.model.User;
 import ai.javis.menucontrol.service.CompanyService;
@@ -68,7 +68,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest body)
-            throws UserAlreadyExists, CompanyAlreadyExists, TeamAlreadyExists {
+            throws UserAlreadyExists, CompanyAlreadyExists, TeamAlreadyExists, MenuAlreadyExists {
 
         CompanyDTO compDTO = body.getCompanyInfo();
 
@@ -85,16 +85,19 @@ public class AuthController {
 
         Company comp = companyService.saveCompany(compDTO);
         User user = userService.saveUser(userDTO, body.getPassword(), comp);
-        List<User> users = new ArrayList<>();
-        users.add(user);
 
-        Team team = teamService.createTeam("ADMIN", users);
-        // menuService.addMenu("CREATE_TEAM", team);
-        // menuService.addMenu("CREATE_MENU", team);
-        // menuService.addMenu("INVITE_MEMBER", team);
-        // menuService.addMenu("ASSIGN_TEAM", team);
-        // menuService.addMenu("ASSIGN_MENU", team);
-        // menuService.addMenu("UPDATE_TEAM", team);
+        Team team = teamService.createTeam("ADMIN", comp);
+        team.addUser(user);
+        team = teamService.updateTeam(team);
+
+        List<String> menus = List.of("CREATE_TEAM", "CREATE_MENU", "INVITE_MEMBER", "ASSIGN_TEAM", "ASSIGN_MENU",
+                "UPDATE_TEAM");
+
+        for (String menu : menus) {
+            Menu menuObj = menuService.addMenu(menu, comp);
+            team.addMenu(menuObj);
+            team = teamService.updateTeam(team);
+        }
 
         ApiResponse<?> resp = new ApiResponse<>("Verify email by the link sent on your email address", null);
         return ResponseEntity.ok(resp);

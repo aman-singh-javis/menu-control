@@ -1,49 +1,72 @@
 package ai.javis.menucontrol.controller;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
-import ai.javis.menucontrol.model.Menu;
+import ai.javis.menucontrol.dto.ApiResponse;
+import ai.javis.menucontrol.dto.MenuDTO;
+import ai.javis.menucontrol.exception.UserNotFound;
+import ai.javis.menucontrol.model.User;
 import ai.javis.menucontrol.service.MenuService;
+import ai.javis.menucontrol.service.UserService;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/menu")
 public class MenuController {
 
     @Autowired
-    MenuService service;
+    MenuService menuService;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/menu")
-    public ResponseEntity<List<Menu>> getMenus() {
-        return new ResponseEntity<>(service.getMenus(), HttpStatus.OK);
+    @Autowired
+    UserService userService;
+
+    @GetMapping
+    public ResponseEntity<?> getMenus() throws UserNotFound {
+        User curUser = userService.getCurrentUser();
+
+        Set<MenuDTO> menus = curUser.getTeams().stream()
+                .flatMap(team -> team.getMenus().stream())
+                .map(menu -> menuService.convertModelToDto(menu))
+                .collect(Collectors.toSet());
+
+        ApiResponse<Set<MenuDTO>> resp = new ApiResponse<>("menus related to user", menus);
+        return ResponseEntity.ok(resp);
     }
 
-    @GetMapping("/menu/{menuId}")
-    public ResponseEntity<Menu> getMenuById(@PathVariable long menuId) {
-        try {
-            Menu menu = service.getMenuById(menuId);
-            return new ResponseEntity<>(menu, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllMenus() {
+        List<MenuDTO> menus = menuService.getAllMenus();
+        ApiResponse<List<MenuDTO>> resp = new ApiResponse<>("all org menus", menus);
 
+        return ResponseEntity.ok(resp);
     }
 
-    // @PreAuthorize("hasRole('ADMIN')")
+    // @GetMapping("/menu/{menuId}")
+    // public ResponseEntity<Menu> getMenuById(@PathVariable long menuId) {
+    // try {
+    // Menu menu = service.getMenuById(menuId);
+    // return new ResponseEntity<>(menu, HttpStatus.OK);
+    // } catch (Exception e) {
+    // return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    // }
+    // }
+
+    @PostMapping("/menu")
+    public String postMethodName(@RequestBody String entity) {
+
+        return entity;
+    }
+
     // @PostMapping("/menu")
     // public ResponseEntity<?> addMenu(@RequestBody Menu menu) {
     // try {

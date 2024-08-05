@@ -93,5 +93,4 @@ public class UserController {
         ApiResponse<List<UserDTO>> rsp = new ApiResponse<List<UserDTO>>("current user list", userDTOs);
         return ResponseEntity.ok(rsp);
     }
-
 }

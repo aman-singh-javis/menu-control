@@ -8,6 +8,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,6 +75,13 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
         sendEmail(user, "To confirm your account");
 
         return savedUser;
+    }
+
+    public User getCurrentUser() throws UserNotFound {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        return getUserByUsername(userDetails.getUsername());
     }
 
     public ResponseEntity<?> signInWithEmail(String email) throws UserNotFound {
