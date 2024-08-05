@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import ai.javis.menucontrol.dto.ApiResponse;
 import ai.javis.menucontrol.exception.CompanyAlreadyExists;
+import ai.javis.menucontrol.exception.CompanyNotFound;
+import ai.javis.menucontrol.exception.ForbiddenRequest;
+import ai.javis.menucontrol.exception.MenuAlreadyExists;
+import ai.javis.menucontrol.exception.MenuNotFound;
+import ai.javis.menucontrol.exception.TeamAlreadyExists;
+import ai.javis.menucontrol.exception.TeamNotFound;
 import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
 
@@ -39,8 +45,44 @@ public class AppExceptionHandler {
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(CompanyNotFound.class)
+    public ResponseEntity<?> handleCompanyNotFoundException(CompanyNotFound exception) {
+        ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(CompanyAlreadyExists.class)
     public ResponseEntity<?> handleCompanyAlreadyExistsException(CompanyAlreadyExists exception) {
+        ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ForbiddenRequest.class)
+    public ResponseEntity<?> handleForbiddenRequestException(ForbiddenRequest exception) {
+        ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MenuNotFound.class)
+    public ResponseEntity<?> handleMenuNotFoundException(MenuNotFound exception) {
+        ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MenuAlreadyExists.class)
+    public ResponseEntity<?> handleMenuAlreadyExistsException(MenuAlreadyExists exception) {
+        ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TeamNotFound.class)
+    public ResponseEntity<?> handleTeamNotFoundException(TeamNotFound exception) {
+        ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TeamAlreadyExists.class)
+    public ResponseEntity<?> handleTeamAlreadyExistsException(TeamAlreadyExists exception) {
         ApiResponse<?> resp = new ApiResponse<>(exception.getMessage(), null);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }

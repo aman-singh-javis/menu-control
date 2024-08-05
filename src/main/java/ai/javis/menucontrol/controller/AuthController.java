@@ -90,8 +90,7 @@ public class AuthController {
         team.addUser(user);
         team = teamService.updateTeam(team);
 
-        List<String> menus = List.of("CREATE_TEAM", "CREATE_MENU", "INVITE_MEMBER", "ASSIGN_TEAM", "ASSIGN_MENU",
-                "UPDATE_TEAM");
+        List<String> menus = List.of("MANAGE_TEAM", "MANAGE_MENU", "INVITE_MEMBER");
 
         for (String menu : menus) {
             Menu menuObj = menuService.addMenu(menu, comp);

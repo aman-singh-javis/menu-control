@@ -1,7 +1,6 @@
 package ai.javis.menucontrol.service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,11 +33,8 @@ public class MenuService {
     }
 
     public Menu getMenuByName(String menuName) throws MenuNotFound {
-        try {
-            return menuRepo.findByMenuName(menuName).orElseThrow();
-        } catch (NoSuchElementException excep) {
-            throw new MenuNotFound("menu with name: " + menuName + " not found");
-        }
+        return menuRepo.findByMenuName(menuName.toUpperCase())
+                .orElseThrow(() -> new MenuNotFound("menu with name: " + menuName + " not found"));
     }
 
     public Menu addMenu(String menuName, Company comp) throws MenuAlreadyExists {

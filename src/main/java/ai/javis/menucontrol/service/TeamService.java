@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import ai.javis.menucontrol.dto.TeamDTO;
 import ai.javis.menucontrol.exception.TeamAlreadyExists;
+import ai.javis.menucontrol.exception.TeamNotFound;
 import ai.javis.menucontrol.model.Company;
 import ai.javis.menucontrol.model.Team;
 import ai.javis.menucontrol.repository.TeamRepo;
@@ -22,6 +23,11 @@ public class TeamService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    public Team findTeamByName(String teamName) throws TeamNotFound {
+        return teamRepo.findByTeamNameIgnoreCase(teamName)
+                .orElseThrow(() -> new TeamNotFound("Team " + teamName + " not found"));
+    }
 
     public List<TeamDTO> getAllTeams() {
         return teamRepo.findAll().stream().map(team -> convertModelToDto(team)).collect(Collectors.toList());
@@ -41,7 +47,7 @@ public class TeamService {
     }
 
     public Team getOrCreateTeam(String teamName, Company company) {
-        Optional<Team> existingTeam = teamRepo.findByTeamName(teamName.toUpperCase());
+        Optional<Team> existingTeam = teamRepo.findByTeamNameIgnoreCase(teamName);
         return existingTeam.orElseGet(() -> {
             Team team = new Team(teamName, company);
             teamRepo.save(team);

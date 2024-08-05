@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ai.javis.menucontrol.dto.ApiResponse;
 import ai.javis.menucontrol.dto.ResetPasswordRequest;
 import ai.javis.menucontrol.dto.UserDTO;
+import ai.javis.menucontrol.exception.ForbiddenRequest;
+import ai.javis.menucontrol.exception.MenuNotFound;
 import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
 import ai.javis.menucontrol.model.User;
@@ -62,7 +64,12 @@ public class UserController {
     }
 
     @PostMapping("/org-invite")
-    public ResponseEntity<?> orgInvite(@Valid @RequestBody UserDTO user) throws UserNotFound, UserAlreadyExists {
+    public ResponseEntity<?> orgInvite(@Valid @RequestBody UserDTO user)
+            throws UserNotFound, UserAlreadyExists, MenuNotFound, ForbiddenRequest {
+        if (!userService.isMenuAssociatedWithCurrentUser("INVITE_MEMBER")) {
+            throw new ForbiddenRequest("you don't have permission to invite members");
+        }
+
         String username = getUsernameFromSecurityContext();
         User currentUser = userService.getUserByUsername(username);
 
@@ -82,7 +89,11 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllUsers() throws UserNotFound {
+    public ResponseEntity<?> getAllUsers() throws UserNotFound, MenuNotFound, ForbiddenRequest {
+        if (!userService.isMenuAssociatedWithCurrentUser("MANAGE_TEAM")) {
+            throw new ForbiddenRequest("you don't have permission to veiw all members");
+        }
+
         String username = getUsernameFromSecurityContext();
         List<User> users = userService.getUserByUsername(username).getCompany().getUsers();
 

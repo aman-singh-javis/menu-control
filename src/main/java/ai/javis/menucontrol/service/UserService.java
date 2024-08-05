@@ -16,19 +16,27 @@ import org.springframework.stereotype.Service;
 
 import ai.javis.menucontrol.dto.ApiResponse;
 import ai.javis.menucontrol.dto.UserDTO;
+import ai.javis.menucontrol.exception.MenuNotFound;
 import ai.javis.menucontrol.exception.UserAlreadyExists;
 import ai.javis.menucontrol.exception.UserNotFound;
 import ai.javis.menucontrol.model.Company;
 import ai.javis.menucontrol.model.ConfirmationToken;
+import ai.javis.menucontrol.model.Menu;
 import ai.javis.menucontrol.model.User;
 import ai.javis.menucontrol.repository.ConfirmationTokenRepo;
+import ai.javis.menucontrol.repository.MenuRepo;
 import ai.javis.menucontrol.repository.UserRepo;
+
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService implements ApplicationListener<AuthenticationSuccessEvent> {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private MenuRepo menuRepo;
 
     @Autowired
     private PasswordEncoder encoder;
@@ -130,6 +138,17 @@ public class UserService implements ApplicationListener<AuthenticationSuccessEve
         }
 
         throw new UserNotFound("User not found with username: " + username);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isMenuAssociatedWithCurrentUser(String menuName) throws UserNotFound, MenuNotFound {
+        User curUser = getCurrentUser();
+
+        Menu menu = menuRepo.findByMenuName(menuName.toUpperCase())
+                .orElseThrow(() -> new MenuNotFound("Menu " + menuName + " not found"));
+
+        return curUser.getTeams().stream()
+                .anyMatch(team -> team.getMenus().contains(menu));
     }
 
     public UserDTO convertModelToDto(User user) {

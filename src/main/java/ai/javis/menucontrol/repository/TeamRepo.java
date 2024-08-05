@@ -9,7 +9,7 @@ import ai.javis.menucontrol.model.Team;
 
 @Repository
 public interface TeamRepo extends JpaRepository<Team, Integer> {
-    Optional<Team> findByTeamName(String teamName);
+    Optional<Team> findByTeamNameIgnoreCase(String teamName);
 
     Boolean existsByTeamName(String teamName);
 }
